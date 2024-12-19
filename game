@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Maze Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Maze walls
+        const wallGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const maze = [
+            [1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 1],
+            [1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1],
+        ];
+
+        maze.forEach((row, z) => {
+            row.forEach((cell, x) => {
+                if (cell === 1) {
+                    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                    wall.position.set(x, 0.5, -z);
+                    scene.add(wall);
+                }
+            });
+        });
+
+        // Player
+        const playerGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+        const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+        const player = new THREE.Mesh(playerGeometry, playerMaterial);
+        player.position.set(1, 0.5, -1);
+        scene.add(player);
+
+        // Light
+        const light = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(light);
+
+        // Camera positioning
+        camera.position.set(1, 3, 3);
+        camera.lookAt(1, 0, -1);
+
+        // Movement logic
+        const speed = 0.1;
+        const keys = { w: false, a: false, s: false, d: false };
+
+        window.addEventListener('keydown', (event) => {
+            if (keys.hasOwnProperty(event.key)) {
+                keys[event.key] = true;
+            }
+        });
+
+        window.addEventListener('keyup', (event) => {
+            if (keys.hasOwnProperty(event.key)) {
+                keys[event.key] = false;
+            }
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (keys.w) player.position.z -= speed;
+            if (keys.s) player.position.z += speed;
+            if (keys.a) player.position.x -= speed;
+            if (keys.d) player.position.x += speed;
+
+            camera.position.set(player.position.x, 3, player.position.z + 3);
+            camera.lookAt(player.position.x, player.position.y, player.position.z);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
